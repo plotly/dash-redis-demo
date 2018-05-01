@@ -4,6 +4,8 @@ import dash_core_components as dcc
 import dash_html_components as html
 from datetime import datetime as dt
 import flask
+import glob
+import json
 import redis
 import time
 import os
@@ -25,12 +27,36 @@ r = redis.StrictRedis.from_url(os.environ['REDIS_URL'])
 app.scripts.config.serve_locally = False
 dcc._js_dist[0]['external_url'] = 'https://cdn.plot.ly/plotly-basic-latest.min.js'
 
-app.layout = html.Div([
-    html.H1('Redis INFO'),
-    html.Div(children=html.Pre(str(r.info()))),
-    html.Button(id='hello', type='submit', children='Run "Hello" task'),
-    html.Div(id='target'),
-], className="container")
+
+
+# since layout is a function, it will be called on every page load
+def layout():
+    with open ('web.txt', 'a') as webfile:
+        webfile.write('Web Process {}\n'.format(dt.now()))
+
+    try:
+        worker = open('worker.txt', 'r').read()
+    except Exception as e:
+        worker = 'Error reading worker.txt'
+        print(e)
+
+    try:
+        web = open('web.txt', 'r').read()
+    except Exception as e:
+        worker = 'Error reading web.txt'
+        print(e)
+
+    return html.Div([
+        html.H1('Redis INFO'),
+        html.Div(children=html.Pre(str(r.info()))),
+        html.Button(id='hello', type='submit', children='Run "Hello" task'),
+        html.Div(id='target'),
+        html.Pre(worker),
+        html.Pre(web),
+        html.Pre(json.dumps(glob.glob('*'), indent=2))
+    ], className="container")
+
+app.layout = layout
 
 @app.callback(Output('target', 'children'), [], [], [Event('hello', 'click')])
 def hello_callback():
