@@ -8,6 +8,7 @@ import redis
 import time
 import os
 from tasks import hello
+from redis_instance import r
 
 server = flask.Flask('app')
 server.secret_key = os.environ.get('secret_key', 'secret')
@@ -20,26 +21,62 @@ if 'DYNO' in os.environ:
             os.environ['DASH_APP_NAME']
         )
 
-r = redis.StrictRedis.from_url(os.environ['REDIS_URL'])
 
 app.scripts.config.serve_locally = False
 dcc._js_dist[0]['external_url'] = 'https://cdn.plot.ly/plotly-basic-latest.min.js'
 
 app.layout = html.Div([
+    dcc.Interval(id='interval', interval=1000),
     html.H1('Redis INFO'),
     html.Div(children=html.Pre(str(r.info()))),
     html.Button(id='hello', type='submit', children='Run "Hello" task'),
-    html.Div(id='target'),
+    html.Button(id='clear', type='submit', children='Clear all reports'),
+    html.Div(id='target1'),
+    html.Div(id='target2'),
+    html.Div(id='status')
 ], className="container")
 
-@app.callback(Output('target', 'children'), [], [], [Event('hello', 'click')])
+
+@app.callback(Output('target2', 'children'), [], [], [Event('clear', 'click')])
+def clear_all():
+    print 'DEBUG: clear_all callback hit'
+    r.flushall()
+
+
+@app.callback(Output('target1', 'children'), [], [], [Event('hello', 'click')])
 def hello_callback():
-    print 'DEBUG: callback hit'
-    hello.delay()
+    print 'DEBUG: hello callback hit'
+    hello.delay(int(time.time()))
+
+
+@app.callback(Output('status', 'children'), [Input('interval', 'n_intervals')])
+def populate_table(n_intervals):
+
+    inner_table = [
+        html.Tr([
+            html.Th(['Report ID']),
+            html.Th(['Status'])
+        ])
+    ]
+
+    print r.keys()
+
+    for key in r.keys():
+        if 'kombu' not in key:
+            status = r.hget(key, 'status')
+            inner_table.append(
+                html.Tr([
+                    html.Td([key]),
+                    html.Td([status if status is not None else 'Task not found'])
+                ])
+            )
+
+    return html.Table(inner_table)
+
 
 app.css.append_css({
     'external_url': (
-	'https://cdn.rawgit.com/plotly/dash-app-stylesheets/96e31642502632e86727652cf0ed65160a57497f/dash-hello-world.css'
+        'https://cdn.rawgit.com/plotly/dash-app-stylesheets/96e31642502632e86727652cf0ed65160a57497f/dash-hello-world.css'
     )
 })
 
