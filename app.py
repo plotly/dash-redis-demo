@@ -7,8 +7,9 @@ import flask
 import redis
 import time
 import os
-from tasks import hello
+from tasks import long_running_task, error_task
 from redis_instance import r
+import uuid
 
 server = flask.Flask('app')
 server.secret_key = os.environ.get('secret_key', 'secret')
@@ -29,24 +30,36 @@ app.layout = html.Div([
     dcc.Interval(id='interval', interval=1000),
     html.H1('Redis INFO'),
     html.Div(children=html.Pre(str(r.info()))),
-    html.Button(id='hello', type='submit', children='Run "Hello" task'),
+    html.Button(id='long', type='submit', children='Run "expensive" task'),
+    html.Button(id='error', type='submit', children='Run "error" task'),
     html.Button(id='clear', type='submit', children='Clear all reports'),
-    html.Div(id='target1'),
-    html.Div(id='target2'),
+    html.Div(id='target'),
     html.Div(id='status')
 ], className="container")
 
 
-@app.callback(Output('target2', 'children'), [], [], [Event('clear', 'click')])
-def clear_all():
-    print 'DEBUG: clear_all callback hit'
-    r.flushall()
-
-
-@app.callback(Output('target1', 'children'), [], [], [Event('hello', 'click')])
-def hello_callback():
-    print 'DEBUG: hello callback hit'
-    hello.delay(int(time.time()))
+@app.callback(
+    Output('target', 'children'),
+    [Input('long', 'n_clicks_timestamp'), Input('error', 'n_clicks_timestamp'),
+     Input('clear', 'n_clicks_timestamp')]
+)
+def task_or_clear(long, error, clear):
+    if not long:
+        long = 0
+    if not error:
+        error = 0
+    if not clear:
+        clear = 0
+    if int(long) > int(clear) and int(long) > int(error):
+        print('DEBUG: long task callback hit')
+        long_running_task.delay(uuid.uuid4().get_hex())
+    elif int(error) > int(long) and int(error) > int(clear):
+        print('DEBUG: error task callback hit')
+        error_task.delay(uuid.uuid4().get_hex())
+    elif int(clear) > int(long) and int(clear) > int(error):
+        print('DEBUG: clearing database')
+        r.flushall()
+    return ''
 
 
 @app.callback(Output('status', 'children'), [Input('interval', 'n_intervals')])
@@ -54,22 +67,19 @@ def populate_table(n_intervals):
 
     inner_table = [
         html.Tr([
-            html.Th(['Report ID']),
+            html.Th(['Task ID']),
             html.Th(['Status'])
         ])
     ]
 
-    print r.keys()
-
-    for key in r.keys():
-        if 'kombu' not in key:
-            status = r.hget(key, 'status')
-            inner_table.append(
-                html.Tr([
-                    html.Td([key]),
-                    html.Td([status if status is not None else 'Task not found'])
-                ])
-            )
+    for key in r.zrangebyscore('tasks', '-inf', 'inf'):
+        status = r.hget(key, 'status')
+        inner_table.append(
+            html.Tr([
+                html.Td([key]),
+                html.Td([status])
+            ])
+        )
 
     return html.Table(inner_table)
 
