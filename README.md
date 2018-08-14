@@ -14,9 +14,15 @@ For debugging convenince, we install the
 package, which offers the `redis-cli` command. This can be removed
 for faster app push times.
 
+## Enable Redis Databases for Dash App
+
 To enable Redis in Dash On Premise navigate to the settings page of the Server Manager. Under **Special Options & Customizations** select **Enable Dash Customizations** and then select **Enable Redis Databases for Dash Apps**.
 
-To create and link a Redis database in Dash On Premise:
+## Create and Link a Redis Database on Plotly Enterprise
+
+For Plotly Enterprise **2.5.0**, you can create and link a Redis Database using the Dash Deployment Server UI. Click [here](https://dash.plot.ly/dash-deployment-server/redis-database) to view the documentation. 
+
+If you are using Plotly Enterprise **2.4.0**, you can follow the ssh commands below:
 
 ```
 ssh dokku@YOUR_DASH_SERVER redis:create SERVICE-NAME
