@@ -18,11 +18,11 @@ for faster app push times.
 
 In Plotly Enterprise **2.5.0**, Redis Databases are always enabled.
 
-For previous versions, you need enable Redis. To achieve this, navigate to the settings page of the Server Manager. Under **Special Options & Customizations** select **Enable Dash Customizations** and then select **Enable Redis Databases for Dash Apps**. For more information see our [official documentation](https://dash.plot.ly/dash-deployment-server/redis-database).
+For previous versions, you need enable Redis. To achieve this, navigate to the settings page of the Server Manager. Under **Special Options & Customizations** select **Enable Dash Customizations** and then select **Enable Redis Databases for Dash Apps**. For more information see our [official documentation on Redis](https://dash.plot.ly/dash-deployment-server/redis-database).
 
 ## Create and Link a Redis Database on Plotly Enterprise
 
-For Plotly Enterprise **2.5.0**, you can create and link a Redis Database using the Dash Deployment Server UI. For more information see our [official documentation](https://dash.plot.ly/dash-deployment-server/redis-database).
+In Plotly Enterprise **2.5.0**, you can create and link a Redis Database using the Dash Deployment Server UI. For more information see our [official documentation on Redis](https://dash.plot.ly/dash-deployment-server/redis-database).
 
 If you are using Plotly Enterprise **2.4.0**, you can follow the ssh commands below:
 
