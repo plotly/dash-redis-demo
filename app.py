@@ -52,10 +52,10 @@ def task_or_clear(long, error, clear):
         clear = 0
     if int(long) > int(clear) and int(long) > int(error):
         print('DEBUG: long task callback hit')
-        long_running_task.delay(uuid.uuid4().get_hex())
+        long_running_task.delay(uuid.uuid4().hex)
     elif int(error) > int(long) and int(error) > int(clear):
         print('DEBUG: error task callback hit')
-        error_task.delay(uuid.uuid4().get_hex())
+        error_task.delay(uuid.uuid4().hex)
     elif int(clear) > int(long) and int(clear) > int(error):
         print('DEBUG: clearing database')
         r.flushall()
@@ -73,11 +73,13 @@ def populate_table(n_intervals):
     ]
 
     for key in r.zrangebyscore('tasks', '-inf', 'inf'):
+        print(key.decode('utf-8'))
         status = r.hget(key, 'status')
+        print(status)
         inner_table.append(
             html.Tr([
-                html.Td([key]),
-                html.Td([status])
+                html.Td([key.decode('utf-8')]),
+                html.Td([status.decode('utf-8')])
             ])
         )
 
