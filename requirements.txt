@@ -24,7 +24,7 @@ jsonschema==2.6.0
 jupyter-core==4.3.0
 MarkupSafe==1.0
 nbformat==4.3.0
-numpy==1.13.0
+numpy==1.21.0
 plotly==2.0.10
 python-dateutil==2.6.0
 pytz==2017.2
